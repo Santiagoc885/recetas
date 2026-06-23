@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recetas
 
-## Getting Started
+Aplicación de recetas de cocina: catálogo público, detalle de receta,
+autenticación, favoritos y correo de bienvenida al registrarse.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router) + TypeScript
+- Material UI (MUI)
+- MongoDB + Mongoose, detrás de una capa de servicios (`src/services`)
+- NextAuth v5 (Credentials Provider + bcrypt)
+- Nodemailer (correo de bienvenida vía Gmail)
+- Cloudinary (alojamiento de las imágenes de las recetas del seed)
+
+> **Nota:** el proyecto corre sobre Next.js 16, que renombró
+> `middleware.ts` a `proxy.ts` (mismo propósito, ver `src/proxy.ts`). Si
+> ves referencias a "middleware" en tutoriales de Next 15, es ese archivo.
+
+## Instalación
+
+```bash
+npm install
+```
+
+## Variables de entorno
+
+Copia `.env.example` a `.env.local` y completa los valores:
+
+```env
+MONGODB_URI=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+GMAIL_USER=
+GMAIL_APP_PASSWORD=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+- `MONGODB_URI`: cadena de conexión de MongoDB (Atlas o local).
+- `NEXTAUTH_SECRET`: genera uno con `openssl rand -base64 32`.
+- `GMAIL_USER` / `GMAIL_APP_PASSWORD`: opcionales. `GMAIL_APP_PASSWORD` es
+  una ["contraseña de aplicación"](https://myaccount.google.com/apppasswords)
+  (requiere verificación en 2 pasos activada en la cuenta de Gmail), no la
+  contraseña normal. Si no se configuran, el correo de bienvenida se omite
+  (se loguea una advertencia) en vez de romper el registro.
+- `CLOUDINARY_*`: credenciales de tu cuenta de Cloudinary, usadas solo por
+  el script de seed para subir las imágenes de las recetas.
+
+## Datos iniciales (seed)
+
+Carga 10 recetas de ejemplo (fácil/intermedio/difícil) y sube sus
+imágenes a Cloudinary:
+
+```bash
+npm run seed
+```
+
+## Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Rutas
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Ruta            | Descripción               | Auth |
+| --------------- | -------------------------- | ---- |
+| `/`              | Listado de recetas         | No   |
+| `/recipes/[id]`  | Detalle de receta          | No   |
+| `/login`         | Inicio de sesión           | No   |
+| `/register`      | Registro de usuario        | No   |
+| `/favorites`     | Recetas favoritas          | Sí   |
 
-## Learn More
+## Arquitectura
 
-To learn more about Next.js, take a look at the following resources:
+Toda interacción con MongoDB (y con servicios externos como Cloudinary o
+Gmail) pasa por `src/services/`. Ninguna página, componente, Server Action
+o Route Handler accede a Mongoose directamente.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/            # rutas, layouts y Server Actions (app/actions)
+├── components/     # componentes de UI reutilizables
+├── services/       # única capa que toca MongoDB / Cloudinary / Gmail
+├── models/         # esquemas de Mongoose
+├── hooks/          # hooks de cliente reutilizables
+├── lib/            # conexión a MongoDB
+├── types/          # tipos compartidos
+├── utils/          # funciones puras de formato
+├── auth.ts         # configuración de NextAuth
+└── proxy.ts         # protección de /favorites (reemplaza a middleware.ts)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Comandos
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # servidor de desarrollo
+npm run build    # build de producción
+npm run start    # servidor de producción
+npm run lint     # ESLint
+npm run seed     # carga de datos iniciales
+```
