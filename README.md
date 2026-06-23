@@ -1,30 +1,30 @@
-# Recetas
+# Recipes
 
-Aplicación de recetas de cocina: catálogo público, detalle de receta,
-autenticación, favoritos y correo de bienvenida al registrarse.
+Cooking recipe app: public catalog, recipe details,
+authentication, favorites, and a welcome email upon registration.
 
-## Stack
+## Tech Stack
 
 - Next.js 16 (App Router) + TypeScript
 - Material UI (MUI)
-- MongoDB + Mongoose, detrás de una capa de servicios (`src/services`)
+- MongoDB + Mongoose, behind a service layer (`src/services`)
 - NextAuth v5 (Credentials Provider + bcrypt)
-- Nodemailer (correo de bienvenida vía Gmail)
-- Cloudinary (alojamiento de las imágenes de las recetas del seed)
+- Nodemailer (welcome email via Gmail)
+- Cloudinary (hosting for seed recipe images)
 
-> **Nota:** el proyecto corre sobre Next.js 16, que renombró
-> `middleware.ts` a `proxy.ts` (mismo propósito, ver `src/proxy.ts`). Si
-> ves referencias a "middleware" en tutoriales de Next 15, es ese archivo.
+> **Note:** The project runs on Next.js 16, which renamed
+> `middleware.ts` to `proxy.ts` (same purpose; see `src/proxy.ts`). If
+> you see references to “middleware” in Next 15 tutorials, that’s the file.
 
-## Instalación
+## Installation
 
 ```bash
 npm install
 ```
 
-## Variables de entorno
+## Environment Variables
 
-Copia `.env.example` a `.env.local` y completa los valores:
+Copy `.env.example` to `.env.local` and fill in the values:
 
 ```env
 MONGODB_URI=
@@ -37,69 +37,69 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
-- `MONGODB_URI`: cadena de conexión de MongoDB (Atlas o local).
-- `NEXTAUTH_SECRET`: genera uno con `openssl rand -base64 32`.
-- `GMAIL_USER` / `GMAIL_APP_PASSWORD`: opcionales. `GMAIL_APP_PASSWORD` es
-  una ["contraseña de aplicación"](https://myaccount.google.com/apppasswords)
-  (requiere verificación en 2 pasos activada en la cuenta de Gmail), no la
-  contraseña normal. Si no se configuran, el correo de bienvenida se omite
-  (se loguea una advertencia) en vez de romper el registro.
-- `CLOUDINARY_*`: credenciales de tu cuenta de Cloudinary, usadas solo por
-  el script de seed para subir las imágenes de las recetas.
+- `MONGODB_URI`: MongoDB connection string (Atlas or local).
+- `NEXTAUTH_SECRET`: Generate one using `openssl rand -base64 32`.
+- `GMAIL_USER` / `GMAIL_APP_PASSWORD`: optional. `GMAIL_APP_PASSWORD` is
+  an [“app password”](https://myaccount.google.com/apppasswords)
+  (requires two-step verification to be enabled on the Gmail account), not the
+  regular password. If these are not configured, the welcome email is skipped
+  (a warning is logged) rather than failing the registration.
+- `CLOUDINARY_*`: your Cloudinary account credentials, used only by
+  the seed script to upload recipe images.
 
-## Datos iniciales (seed)
+## Seed Data
 
-Carga 10 recetas de ejemplo (fácil/intermedio/difícil) y sube sus
-imágenes a Cloudinary:
+Load 10 sample recipes (easy/intermediate/difficult) and upload their
+images to Cloudinary:
 
 ```bash
 npm run seed
 ```
 
-## Desarrollo
+## Development
 
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-## Rutas
+## Routes
 
-| Ruta            | Descripción               | Auth |
+| Route            | Description               | Auth |
 | --------------- | -------------------------- | ---- |
-| `/`              | Listado de recetas         | No   |
-| `/recipes/[id]`  | Detalle de receta          | No   |
-| `/login`         | Inicio de sesión           | No   |
-| `/register`      | Registro de usuario        | No   |
-| `/favorites`     | Recetas favoritas          | Sí   |
+| `/`              | List of recipes         | No   |
+| `/recipes/[id]`  | Recipe details          | No   |
+| `/login`         | Login           | No   |
+| `/register`      | User registration    | No   |
+| `/favorites`     | Favorite recipes    | Yes   |
 
-## Arquitectura
+## Architecture
 
-Toda interacción con MongoDB (y con servicios externos como Cloudinary o
-Gmail) pasa por `src/services/`. Ninguna página, componente, Server Action
-o Route Handler accede a Mongoose directamente.
+All interactions with MongoDB (and with external services such as Cloudinary or
+Gmail) goes through `src/services/`. No page, component, Server Action,
+or Route Handler accesses Mongoose directly.
 
 ```
 src/
-├── app/            # rutas, layouts y Server Actions (app/actions)
-├── components/     # componentes de UI reutilizables
-├── services/       # única capa que toca MongoDB / Cloudinary / Gmail
-├── models/         # esquemas de Mongoose
-├── hooks/          # hooks de cliente reutilizables
-├── lib/            # conexión a MongoDB
-├── types/          # tipos compartidos
-├── utils/          # funciones puras de formato
-├── auth.ts         # configuración de NextAuth
-└── proxy.ts         # protección de /favorites (reemplaza a middleware.ts)
+├── app/            # routes, layouts, and Server Actions (app/actions)
+├── components/     # reusable UI components
+├── services/       # the only layer that interacts with MongoDB / Cloudinary / Gmail
+├── models/         # Mongoose schemas
+├── hooks/          # reusable client hooks
+├── lib/            # MongoDB connection
+├── types/          # shared types
+├── utils/          # pure formatting functions
+├── auth.ts         # NextAuth configuration
+└── proxy.ts         # protection for /favorites (replaces middleware.ts)
 ```
 
-## Comandos
+## Commands
 
 ```bash
-npm run dev      # servidor de desarrollo
-npm run build    # build de producción
-npm run start    # servidor de producción
+npm run dev      # development server
+npm run build    # production build
+npm run start    # production server
 npm run lint     # ESLint
-npm run seed     # carga de datos iniciales
+npm run seed     # load initial data
 ```
